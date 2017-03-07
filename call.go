@@ -11,8 +11,30 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-func decodeArgs(jsonBytes []byte) ([]interface{}, error) {
+// MarshalArgs converts its arguments in order into the json argument
+// format compatible with go-json-call. Float values that are precise ints
+// are converted to integers, unfortunately.
+func MarshalArgs(args ...interface{}) ([]byte, error) {
+
+	argMap := map[string]interface{}{}
+
+	for argIdx, arg := range args {
+		argIdxStr := strconv.Itoa(argIdx)
+		argMap[argIdxStr] = arg
+	}
+	jsonBytes, err := json.Marshal(argMap)
+	if err != nil {
+		return nil, err
+	}
+	return jsonBytes, nil
+}
+
+// UnmarshalArgs converts a json argument format into a slice of
+// How to handle ambiguous json encodings (1.0 (go) -> 1 (json) -> 1 or 1.0 (go))
+func UnmarshalArgs(jsonBytes []byte) ([]interface{}, error) {
+
 	var args map[string]interface{}
+
 	dec := json.NewDecoder(bytes.NewBuffer([]byte(jsonBytes)))
 	dec.UseNumber()
 	err := dec.Decode(&args)
@@ -130,7 +152,7 @@ func buildResults(vals []reflect.Value) (map[string]interface{}, error) {
 
 // CallWithJSON Calls a function f with arguments from a JSON byte stream
 func CallWithJSON(f interface{}, jsonBytes []byte) ([]byte, error) {
-	args, err := decodeArgs(jsonBytes)
+	args, err := UnmarshalArgs(jsonBytes)
 	if err != nil {
 		return nil, err
 	}
