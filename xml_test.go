@@ -4,26 +4,27 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/k0kubun/pp"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMarshal(t *testing.T) {
-	_, err := MarshalArgs(1, 2)
+func TestMarshalXML(t *testing.T) {
+	_, err := MarshalXMLArgs(1, 2)
 	assert.NoError(t, err, "Support ints")
 
-	_, err = MarshalArgs(-1, 0)
+	_, err = MarshalXMLArgs(-1, 0)
 	assert.NoError(t, err, "Support negative ints")
 
-	_, err = MarshalArgs(1.0)
+	_, err = MarshalXMLArgs(1.0)
 	assert.NoError(t, err, "Support float64")
 
-	_, err = MarshalArgs("1")
+	_, err = MarshalXMLArgs("1")
 	assert.NoError(t, err, "Support strings")
 
-	_, err = MarshalArgs(1, "")
+	_, err = MarshalXMLArgs(1, "")
 	assert.NoError(t, err, "Support mixed")
 
-	_, err = MarshalArgs(nil)
+	_, err = MarshalXMLArgs(nil)
 	assert.NoError(t, err, "Support nil")
 
 	type TestType struct {
@@ -31,53 +32,54 @@ func TestMarshal(t *testing.T) {
 		b string
 	}
 
-	_, err = MarshalArgs(TestType{1, ""})
+	_, err = MarshalXMLArgs(TestType{1, ""})
 	assert.NoError(t, err, "Support struct")
 
-	_, err = MarshalArgs(&TestType{1, ""})
+	_, err = MarshalXMLArgs(&TestType{1, ""})
 	assert.NoError(t, err, "Support struct pointer")
 }
 
-func TestUnmarshal(t *testing.T) {
-	j, err := MarshalArgs(1, 0, -1)
-	assert.NoError(t, err, "Support ints")
-	args, err := UnmarshalArgs(j)
-	assert.NoError(t, err, "Support ints")
+func TestUnmarshalXML(t *testing.T) {
+	j, err := MarshalXMLArgs(1, 0, -1)
+	assert.NoError(t, err, "Marshal ints")
+	args, err := UnmarshalXMLArgs(j)
+	assert.NoError(t, err, "Unmarshal ints")
 	assert.Equal(t, 1, args[0].(int), "Support ints")
 	assert.Equal(t, 0, args[1].(int), "Support ints")
 	assert.Equal(t, -1, args[2].(int), "Support ints")
 
-	j, err = MarshalArgs(1.0)
-	// pp.Println(string(j))
+	j, err = MarshalXMLArgs(1.0)
+	pp.Println(string(j))
 	assert.NoError(t, err, "Support f64")
-	args, err = UnmarshalArgs(j)
+	args, err = UnmarshalXMLArgs(j)
 	assert.NoError(t, err, "Support f64")
-	// pp.Println(args)
 	assert.IsType(t, 1.0, args[0], "Should be float64")
-	// assert.Equal(t, 1.0, args[0].(float64), "Should be 1.0")
+	pp.Println(args)
+	assert.Equal(t, 1.0, args[0].(float64), "Should be 1.0")
 
 }
 
-func TestCall(t *testing.T) {
+func TestCallWithXML(t *testing.T) {
 
 	testfunc1 := func(x int) (int, error) {
 		if x == 0 {
 			return 0, errors.New("")
+		} else {
+			return x, nil
 		}
-		return x, nil
 	}
 
 	args := []byte(`{"0":0}`)
-	_, err := CallWithJSON(testfunc1, args)
+	_, err := CallWithXML(testfunc1, args)
 	assert.NoError(t, err, "")
 
 	args = []byte(`{"0":null}`)
-	_, err = CallWithJSON(testfunc1, args)
+	_, err = CallWithXML(testfunc1, args)
 	assert.Error(t, err, "")
 
 }
 
-func TestNilArg(t *testing.T) {
+func TestNilArgCall(t *testing.T) {
 
 	testfunc1 := func(x *int) int {
 		if x == nil {
@@ -87,7 +89,7 @@ func TestNilArg(t *testing.T) {
 	}
 
 	args := []byte(`{"0":null}`)
-	_, err := CallWithJSON(testfunc1, args)
+	_, err := CallWithXML(testfunc1, args)
 	assert.NoError(t, err, "")
 
 }

@@ -1,14 +1,11 @@
-package jsoncall
+package serializedcall
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"reflect"
 	"strconv"
-
-	"github.com/labstack/gommon/log"
 )
 
 // MarshalArgs converts its arguments in order into the json argument
@@ -65,7 +62,7 @@ func UnmarshalArgs(jsonBytes []byte) ([]interface{}, error) {
 				argSlice = append(argSlice, arg)
 			}
 		} else {
-			log.Info("Didn't find argument", i)
+			// log.Info("Didn't find argument", i)
 			break
 		}
 	}
@@ -157,7 +154,7 @@ func CallWithJSON(f interface{}, jsonBytes []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	fmt.Printf("%#v\n", args)
+	// fmt.Printf("%#v\n", args)
 
 	vals, err := callFunction(args, f)
 	if err != nil {
